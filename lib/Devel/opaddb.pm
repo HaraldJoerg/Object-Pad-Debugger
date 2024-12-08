@@ -13,9 +13,12 @@ Devel::opaddb.pm - Display Object::Pad objects in Perl's debugger
 =head1 DESCRIPTION
 
 This module enhances Perl's builtin debugger's ability to display
-L<Object::Pad|https://metacpan.org/pod/Object::Pad> objects.  It shows
-the name of the fields, base classes and roles in addition to their
-values.
+L<Object::Pad|https://metacpan.org/pod/Object::Pad> objects and L<PDL>
+ndarrays.  For Object::Pad, It shows the name of the fields, base
+classes and roles in addition to their values.  PDL objects are
+printed using PDL's stringification of the object instead of the
+value of its scalar.
+
 
 =head2 NORMAL USE
 
@@ -341,14 +344,21 @@ no warnings 'redefine';
 	}
 	print "$sp  empty array\n" unless @$v;
 	print "$sp$more" if defined $more ;
-
-    } elsif ( $item_type eq 'SCALAR' ) { 
+    } elsif ( $item_type eq 'SCALAR' ) {
+	# *** begin support of PDL objects
+	use builtin qw( blessed );
+	if (blessed($v)  eq  'PDL') {
+	    print "$sp-> $v\n";
+	}
+	else {
+	# *** end   support of PDL objects
             unless (defined $$v) {
               print "$sp-> undef\n";
               return;
             }
 	    print "$sp-> ";
 	    DumpElem $$v, $s, $m-1;
+	}
     } elsif ( $item_type eq 'REF' ) { 
 	    print "$sp-> $$v\n";
             return unless defined $$v;
